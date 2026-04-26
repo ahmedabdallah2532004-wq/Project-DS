@@ -1,0 +1,92 @@
+{
+	"info": {
+		"name": "Access Analytics Service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/health",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3010",
+					"path": [
+						"health"
+					]
+				}
+			}
+		},
+		{
+			"name": "Ready Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/ready",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3010",
+					"path": [
+						"ready"
+					]
+				}
+			}
+		},
+		{
+			"name": "Log Access",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"file_id\": \"file_001\",\n    \"user_id\": \"user_99\",\n    \"action\": \"DOWNLOAD\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/access/log",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3010",
+					"path": [
+						"access",
+						"log"
+					]
+				}
+			}
+		},
+		{
+			"name": "Get File Analytics",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/analytics/file/file_001",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3010",
+					"path": [
+						"analytics",
+						"file",
+						"file_001"
+					]
+				}
+			}
+		}
+	]
+}
