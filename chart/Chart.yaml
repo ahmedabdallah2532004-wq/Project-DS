@@ -1,0 +1,6 @@
+apiVersion: v2
+name: cse474
+description: Team 3 PM3 integrated deployment chart
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

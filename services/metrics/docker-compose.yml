@@ -1,0 +1,67 @@
+services:
+  metrics-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: metrics_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - metrics-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d metrics_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.3
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.3
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  metrics-service:
+    build:
+      context: .
+    depends_on:
+      metrics-db:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      SERVICE_NAME: metrics-service
+      DATABASE_URL: postgresql://postgres:postgres@metrics-db:5432/metrics_service
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_CLIENT_ID: metrics-service
+      KAFKA_CONSUMER_GROUP: metrics-service-group
+      KAFKA_THRESHOLD_TOPIC: metrics.threshold.exceeded
+      KAFKA_CONFIG_TOPIC: config.updated
+      KAFKA_FLAG_TOPIC: flag.updated
+      DEFAULT_THRESHOLD: 80
+      ENABLE_THRESHOLD_ALERTS: "true"
+    ports:
+      - "3000:3000"
+
+volumes:
+  metrics-db-data:

@@ -1,0 +1,34 @@
+{
+  "title": "Team 3 Platform Dashboard",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "HTTP Request Rate",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total[5m])) by (route, method)"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "HTTP Error Rate",
+      "targets": [
+        {
+          "expr": "sum(rate(http_request_errors_total[5m])) by (route)"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Latency p95",
+      "targets": [
+        {
+          "expr": "max(http_request_duration_seconds{quantile=\"0.95\"}) by (route)"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "version": 1
+}

@@ -1,0 +1,53 @@
+namespace: cse474-prod
+
+images:
+  metrics:
+    repository: ghcr.io/example/team3-metrics
+    tag: latest
+  notification:
+    repository: ghcr.io/example/team3-notification
+    tag: latest
+  postgres:
+    repository: postgres
+    tag: 16-alpine
+  zookeeper:
+    repository: confluentinc/cp-zookeeper
+    tag: 7.5.3
+  kafka:
+    repository: confluentinc/cp-kafka
+    tag: 7.5.3
+
+replicaCount:
+  metrics: 2
+  notification: 2
+
+resources:
+  metrics:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  notification:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+ingress:
+  enabled: true
+  host: team3.local
+
+config:
+  kafkaBrokers: kafka:9092
+  defaultThreshold: "80"
+  alertsEnabled: "true"
+  defaultRecipient: ops@example.com
+  otelExporterOtlpEndpoint: http://jaeger-collector.cse474-prod.svc.cluster.local:4318
+
+secrets:
+  metricsDatabaseUrl: postgresql://postgres:postgres@metrics-db:5432/metrics_service
+  notificationDatabaseUrl: postgresql://postgres:postgres@notification-db:5432/notification_service

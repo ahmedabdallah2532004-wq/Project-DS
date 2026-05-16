@@ -9,11 +9,17 @@ services:
       - "5434:5432"
     volumes:
       - metrics-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d metrics_service"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+
+  notification-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: notification_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+    volumes:
+      - notification-db-data:/var/lib/postgresql/data
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.3
@@ -41,12 +47,11 @@ services:
 
   metrics-service:
     build:
-      context: .
+      context: ./services/metrics
     depends_on:
-      metrics-db:
-        condition: service_healthy
-      kafka:
-        condition: service_started
+      - metrics-db
+      - kafka
+      - jaeger
     environment:
       PORT: 3000
       NODE_ENV: production
@@ -60,8 +65,92 @@ services:
       KAFKA_FLAG_TOPIC: flag.updated
       DEFAULT_THRESHOLD: 80
       ENABLE_THRESHOLD_ALERTS: "true"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
     ports:
       - "3000:3000"
 
+  notification-service:
+    build:
+      context: ./services/notification
+    depends_on:
+      - notification-db
+      - kafka
+      - jaeger
+    environment:
+      PORT: 3001
+      NODE_ENV: production
+      SERVICE_NAME: notification-service
+      DATABASE_URL: postgresql://postgres:postgres@notification-db:5432/notification_service
+      KAFKA_BROKERS: kafka:29092
+      KAFKA_CLIENT_ID: notification-service
+      KAFKA_CONSUMER_GROUP: notification-group
+      KAFKA_NOTIFICATION_SENT_TOPIC: notification.sent
+      KAFKA_UPLOAD_COMPLETED_TOPIC: upload.completed
+      KAFKA_REPLICATION_COMPLETED_TOPIC: replication.completed
+      KAFKA_QUOTA_EXCEEDED_TOPIC: quota.exceeded
+      KAFKA_BACKUP_COMPLETED_TOPIC: backup.completed
+      KAFKA_METRICS_THRESHOLD_TOPIC: metrics.threshold.exceeded
+      DEFAULT_RECIPIENT: ops@example.com
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+    ports:
+      - "3001:3001"
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - metrics-service
+      - notification-service
+
+  loki:
+    image: grafana/loki:3.2.1
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./observability/loki-config.yml:/etc/loki/local-config.yaml:ro
+    ports:
+      - "3100:3100"
+
+  promtail:
+    image: grafana/promtail:3.2.1
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - ./observability/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - loki
+
+  grafana:
+    image: grafana/grafana:11.2.2
+    ports:
+      - "3002:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    depends_on:
+      - prometheus
+      - loki
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+
+  n8n:
+    image: n8nio/n8n:1.62.5
+    ports:
+      - "5678:5678"
+    environment:
+      N8N_BASIC_AUTH_ACTIVE: "false"
+      N8N_HOST: localhost
+      WEBHOOK_URL: http://localhost:5678/
+
 volumes:
   metrics-db-data:
+  notification-db-data:

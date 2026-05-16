@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: cse474-prod
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+        - name: notification-service
+          image: ghcr.io/example/team3-notification:latest
+          ports:
+            - containerPort: 3001
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: SERVICE_NAME
+              value: notification-service
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: team3-secrets
+                  key: NOTIFICATION_DATABASE_URL
+            - name: KAFKA_BROKERS
+              valueFrom:
+                configMapKeyRef:
+                  name: team3-config
+                  key: KAFKA_BROKERS
+            - name: KAFKA_CLIENT_ID
+              value: notification-service
+            - name: KAFKA_CONSUMER_GROUP
+              value: notification-group
+            - name: KAFKA_NOTIFICATION_SENT_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: team3-config
+                  key: KAFKA_NOTIFICATION_SENT_TOPIC
+            - name: KAFKA_UPLOAD_COMPLETED_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: team3-config
+                  key: KAFKA_UPLOAD_COMPLETED_TOPIC
+            - name: KAFKA_REPLICATION_COMPLETED_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: team3-config
+                  key: KAFKA_REPLICATION_COMPLETED_TOPIC
+            - name: KAFKA_QUOTA_EXCEEDED_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: team3-config
+                  key: KAFKA_QUOTA_EXCEEDED_TOPIC
+            - name: KAFKA_BACKUP_COMPLETED_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: team3-config
+                  key: KAFKA_BACKUP_COMPLETED_TOPIC
+            - name: KAFKA_METRICS_THRESHOLD_TOPIC
+              valueFrom:
+                configMapKeyRef:
+                  name: team3-config
+                  key: KAFKA_METRICS_THRESHOLD_TOPIC
+            - name: DEFAULT_RECIPIENT
+              valueFrom:
+                configMapKeyRef:
+                  name: team3-config
+                  key: DEFAULT_RECIPIENT
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: team3-config
+                  key: OTEL_EXPORTER_OTLP_ENDPOINT
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: cse474-prod
+spec:
+  selector:
+    app: notification-service
+  ports:
+    - port: 3001
+      targetPort: 3001

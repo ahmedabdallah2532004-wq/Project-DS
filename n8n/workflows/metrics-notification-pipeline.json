@@ -1,0 +1,68 @@
+{
+  "name": "metrics-notification-pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "metrics-threshold-hook"
+      },
+      "id": "Webhook_1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://metrics-service:3000/metrics",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}"
+      },
+      "id": "HTTP_1",
+      "name": "Send To Metrics Service",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [520, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://notification-service:3001/notify/email",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"type\":\"manual\",\"to_address\":\"ops@example.com\",\"subject\":\"n8n workflow alert\",\"message\":\"Metrics workflow triggered a manual notification.\",\"metadata\":{\"workflow\":\"metrics-notification-pipeline\"}}"
+      },
+      "id": "HTTP_2",
+      "name": "Notify Service",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [820, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send To Metrics Service",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send To Metrics Service": {
+      "main": [
+        [
+          {
+            "node": "Notify Service",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
