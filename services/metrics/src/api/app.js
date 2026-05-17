@@ -23,11 +23,10 @@ export function createApp() {
     res.status(response.statusCode).json(response.body);
   });
 
-  app.use((error, req, res, next) => {
-    req.log.error({ err: error }, 'Unhandled application error');
+  app.use((error, req, res, _next) => {
+    req?.log?.error({ err: error }, 'Unhandled application error');
     const response = errorResponse(req, 'INTERNAL_SERVER_ERROR', 'Unexpected server error', {}, 500);
     res.status(response.statusCode).json(response.body);
-    next();
   });
 
   return app;
