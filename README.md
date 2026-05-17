@@ -1,92 +1,122 @@
-# Team 3 PM3 Integration Repository
+# PM3 Microservices Final Submission
 
-This branch packages the `metrics` and `notification` microservices into one shared repository for PM3 submission work without changing `main`.
+## Project Overview
 
-## Repository Layout
-
-```text
-services/
-  metrics/
-  notification/
-k8s/
-chart/
-observability/
-.github/workflows/ci-cd.yml
-n8n/workflows/
-report/
-```
+This repository contains the PM3 microservices platform with eight Node.js services, Docker Compose, Kubernetes manifests, Helm chart, CI/CD, Prometheus, Grafana, Jaeger tracing, and n8n workflow artifacts.
 
 ## Services
 
-- `services/metrics`: REST + Kafka metrics service with Swagger, Prometheus metrics, tracing bootstrap, PM2 config, Dockerfile, tests, and k8s manifests.
-- `services/notification`: REST + Kafka notification service with Swagger, Prometheus metrics, tracing bootstrap, PM2 config, Dockerfile, tests, and k8s manifests.
+| Service | Folder | Port |
+|---|---|---:|
+| metrics-service | `services/metrics-service` | 3001 |
+| notification-service | `services/notification-service` | 3002 |
+| preview-service | `services/preview-service` | 3003 |
+| compression-service | `services/compression-service` | 3004 |
+| webhook-service | `services/webhook-service` | 3005 |
+| scheduler-service | `services/scheduler-service` | 3006 |
+| access-analytics-service | `services/access-analytics-service` | 3007 |
+| backup-service | `services/backup-service` | 3008 |
 
-## Quick Start
+## Common Endpoints
+
+Each service exposes:
+
+- `GET /health`
+- `GET /ready`
+- `GET /metrics`
+- `GET /docs`
+- `GET /api-docs`
+
+Swagger URLs:
+
+- `http://localhost:3001/docs`
+- `http://localhost:3002/docs`
+- `http://localhost:3003/docs`
+- `http://localhost:3004/docs`
+- `http://localhost:3005/docs`
+- `http://localhost:3006/docs`
+- `http://localhost:3007/docs`
+- `http://localhost:3008/docs`
+
+Metrics URLs use the same ports with `/metrics`.
+
+## Local Service Commands
 
 ```bash
-docker compose up --build
+cd services/<service-name>
+npm install
+npm run lint
+npm test
+npm run test:coverage
+npm start
 ```
 
-Service URLs:
+## Docker Build
 
-- Metrics API: `http://localhost:3000`
-- Metrics Swagger: `http://localhost:3000/docs`
-- Notification API: `http://localhost:3001`
-- Notification Swagger: `http://localhost:3001/docs`
+```bash
+docker build -t pm3/metrics-service:local services/metrics-service
+docker build -t pm3/notification-service:local services/notification-service
+docker build -t pm3/preview-service:local services/preview-service
+docker build -t pm3/compression-service:local services/compression-service
+docker build -t pm3/webhook-service:local services/webhook-service
+docker build -t pm3/scheduler-service:local services/scheduler-service
+docker build -t pm3/access-analytics-service:local services/access-analytics-service
+docker build -t pm3/backup-service:local services/backup-service
+```
+
+## Docker Compose
+
+```bash
+docker compose config
+docker compose up -d --build
+docker compose ps
+docker compose logs --tail=100
+```
+
+Observability URLs:
+
 - Prometheus: `http://localhost:9090`
-- Grafana: `http://localhost:3002`
+- Grafana: `http://localhost:3000`
 - Jaeger: `http://localhost:16686`
 - n8n: `http://localhost:5678`
 
-## Tests
-
-```bash
-cd services/metrics
-npm install
-npm run test
-
-cd ../notification
-npm install
-npm run test
-```
-
-Coverage reports are written to:
-
-- `services/metrics/tests/coverage/`
-- `services/notification/tests/coverage/`
-
 ## Kubernetes
 
-Raw manifests live in `k8s/`.
-
 ```bash
+kubectl apply -f k8s/namespace.yaml
 kubectl apply -f k8s/
 ```
 
-The Helm chart is in `chart/`.
+## Helm
 
 ```bash
-helm install cse474 ./chart
+helm lint ./helm/pm3-microservices
+helm template cse474 ./helm/pm3-microservices
+helm upgrade --install cse474 ./helm/pm3-microservices --namespace cse474-prod --create-namespace
 ```
 
-## CI/CD
+## CI/CD Secrets
 
-The workflow file is:
+GitHub Actions expects:
 
-- `.github/workflows/ci-cd.yml`
+- `DOCKER_USERNAME`
+- `DOCKER_PASSWORD`
+- `KUBE_CONFIG`
 
-It runs lint, dependency install, tests with coverage, Docker builds, registry push, and guarded Helm-based deployment on `main`.
+## Screenshots Required
 
-## Observability
+Add final screenshots under `report/screenshots/`:
 
-- Prometheus config: `observability/prometheus.yml`
-- Grafana dashboard export: `observability/grafana/team3-platform-dashboard.json`
-- Loki config: `observability/loki-config.yml`
-- Promtail config: `observability/promtail-config.yml`
-- Jaeger traces: `observability/jaeger/README.md`
+- `swagger-metrics-service.png`
+- `swagger-webhook-service.png`
+- `prometheus-targets.png`
+- `grafana-dashboard.png`
+- `jaeger-trace.png`
+- `n8n-workflow.gif`
 
-## Bonus n8n
+## Viva Notes
 
-The example workflow export is committed at:
-
-- `n8n/workflows/metrics-notification-pipeline.json`
+- All services use structured JSON logs with `timestamp`, `service`, `request_id`, `level`, and `message`.
+- Every service exposes Prometheus metrics and OpenTelemetry tracing setup.
+- Docker Compose runs all services plus Prometheus, Grafana, Jaeger, n8n, MongoDB, and Kafka.
+- Kubernetes and Helm include replicas, probes, ConfigMaps, and resource requests/limits.

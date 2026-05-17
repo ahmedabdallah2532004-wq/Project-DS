@@ -1,156 +1,268 @@
 services:
-  metrics-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: metrics_service
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5434:5432"
-    volumes:
-      - metrics-db-data:/var/lib/postgresql/data
 
-  notification-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: notification_service
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+  mongo:
+    image: mongo:7
     ports:
-      - "5435:5432"
+      - "27017:27017"
     volumes:
-      - notification-db-data:/var/lib/postgresql/data
-
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.3
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "2181:2181"
+      - mongo_data:/data/db
 
   kafka:
-    image: confluentinc/cp-kafka:7.5.3
-    depends_on:
-      - zookeeper
+    image: apache/kafka:latest
     ports:
       - "9092:9092"
-      - "29092:29092"
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
 
   metrics-service:
     build:
-      context: ./services/metrics
-    depends_on:
-      - metrics-db
-      - kafka
-      - jaeger
-    environment:
-      PORT: 3000
-      NODE_ENV: production
-      SERVICE_NAME: metrics-service
-      DATABASE_URL: postgresql://postgres:postgres@metrics-db:5432/metrics_service
-      KAFKA_BROKERS: kafka:29092
-      KAFKA_CLIENT_ID: metrics-service
-      KAFKA_CONSUMER_GROUP: metrics-service-group
-      KAFKA_THRESHOLD_TOPIC: metrics.threshold.exceeded
-      KAFKA_CONFIG_TOPIC: config.updated
-      KAFKA_FLAG_TOPIC: flag.updated
-      DEFAULT_THRESHOLD: 80
-      ENABLE_THRESHOLD_ALERTS: "true"
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      context: ./services/metrics-service
+    image: pm3/metrics-service:local
     ports:
-      - "3000:3000"
+      - "3001:3001"
+    environment:
+      NODE_ENV: "development"
+      SERVICE_NAME: "metrics-service"
+      PORT: "3001"
+      OTEL_TRACING_ENABLED: "true"
+      OTEL_SERVICE_NAME: "metrics-service"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger:4318/v1/traces"
+      METRICS_SERVICE_URL: "http://metrics-service:3001"
+      NOTIFICATION_SERVICE_URL: "http://notification-service:3002"
+      PREVIEW_SERVICE_URL: "http://preview-service:3003"
+      COMPRESSION_SERVICE_URL: "http://compression-service:3004"
+      WEBHOOK_SERVICE_URL: "http://webhook-service:3005"
+      SCHEDULER_SERVICE_URL: "http://scheduler-service:3006"
+      ACCESS_ANALYTICS_SERVICE_URL: "http://access-analytics-service:3007"
+      BACKUP_SERVICE_URL: "http://backup-service:3008"
+    depends_on:
+      - jaeger
 
   notification-service:
     build:
-      context: ./services/notification
-    depends_on:
-      - notification-db
-      - kafka
-      - jaeger
-    environment:
-      PORT: 3001
-      NODE_ENV: production
-      SERVICE_NAME: notification-service
-      DATABASE_URL: postgresql://postgres:postgres@notification-db:5432/notification_service
-      KAFKA_BROKERS: kafka:29092
-      KAFKA_CLIENT_ID: notification-service
-      KAFKA_CONSUMER_GROUP: notification-group
-      KAFKA_NOTIFICATION_SENT_TOPIC: notification.sent
-      KAFKA_UPLOAD_COMPLETED_TOPIC: upload.completed
-      KAFKA_REPLICATION_COMPLETED_TOPIC: replication.completed
-      KAFKA_QUOTA_EXCEEDED_TOPIC: quota.exceeded
-      KAFKA_BACKUP_COMPLETED_TOPIC: backup.completed
-      KAFKA_METRICS_THRESHOLD_TOPIC: metrics.threshold.exceeded
-      DEFAULT_RECIPIENT: ops@example.com
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
+      context: ./services/notification-service
+    image: pm3/notification-service:local
     ports:
-      - "3001:3001"
+      - "3002:3002"
+    environment:
+      NODE_ENV: "development"
+      SERVICE_NAME: "notification-service"
+      PORT: "3002"
+      OTEL_TRACING_ENABLED: "true"
+      OTEL_SERVICE_NAME: "notification-service"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger:4318/v1/traces"
+      METRICS_SERVICE_URL: "http://metrics-service:3001"
+      NOTIFICATION_SERVICE_URL: "http://notification-service:3002"
+      PREVIEW_SERVICE_URL: "http://preview-service:3003"
+      COMPRESSION_SERVICE_URL: "http://compression-service:3004"
+      WEBHOOK_SERVICE_URL: "http://webhook-service:3005"
+      SCHEDULER_SERVICE_URL: "http://scheduler-service:3006"
+      ACCESS_ANALYTICS_SERVICE_URL: "http://access-analytics-service:3007"
+      BACKUP_SERVICE_URL: "http://backup-service:3008"
+    depends_on:
+      - jaeger
+
+  preview-service:
+    build:
+      context: ./services/preview-service
+    image: pm3/preview-service:local
+    ports:
+      - "3003:3003"
+    environment:
+      NODE_ENV: "development"
+      SERVICE_NAME: "preview-service"
+      PORT: "3003"
+      OTEL_TRACING_ENABLED: "true"
+      OTEL_SERVICE_NAME: "preview-service"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger:4318/v1/traces"
+      METRICS_SERVICE_URL: "http://metrics-service:3001"
+      NOTIFICATION_SERVICE_URL: "http://notification-service:3002"
+      PREVIEW_SERVICE_URL: "http://preview-service:3003"
+      COMPRESSION_SERVICE_URL: "http://compression-service:3004"
+      WEBHOOK_SERVICE_URL: "http://webhook-service:3005"
+      SCHEDULER_SERVICE_URL: "http://scheduler-service:3006"
+      ACCESS_ANALYTICS_SERVICE_URL: "http://access-analytics-service:3007"
+      BACKUP_SERVICE_URL: "http://backup-service:3008"
+    depends_on:
+      - jaeger
+
+  compression-service:
+    build:
+      context: ./services/compression-service
+    image: pm3/compression-service:local
+    ports:
+      - "3004:3004"
+    environment:
+      NODE_ENV: "development"
+      SERVICE_NAME: "compression-service"
+      PORT: "3004"
+      OTEL_TRACING_ENABLED: "true"
+      OTEL_SERVICE_NAME: "compression-service"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger:4318/v1/traces"
+      METRICS_SERVICE_URL: "http://metrics-service:3001"
+      NOTIFICATION_SERVICE_URL: "http://notification-service:3002"
+      PREVIEW_SERVICE_URL: "http://preview-service:3003"
+      COMPRESSION_SERVICE_URL: "http://compression-service:3004"
+      WEBHOOK_SERVICE_URL: "http://webhook-service:3005"
+      SCHEDULER_SERVICE_URL: "http://scheduler-service:3006"
+      ACCESS_ANALYTICS_SERVICE_URL: "http://access-analytics-service:3007"
+      BACKUP_SERVICE_URL: "http://backup-service:3008"
+    depends_on:
+      - jaeger
+
+  webhook-service:
+    build:
+      context: ./services/webhook-service
+    image: pm3/webhook-service:local
+    ports:
+      - "3005:3005"
+    environment:
+      NODE_ENV: "development"
+      SERVICE_NAME: "webhook-service"
+      PORT: "3005"
+      OTEL_TRACING_ENABLED: "true"
+      OTEL_SERVICE_NAME: "webhook-service"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger:4318/v1/traces"
+      METRICS_SERVICE_URL: "http://metrics-service:3001"
+      NOTIFICATION_SERVICE_URL: "http://notification-service:3002"
+      PREVIEW_SERVICE_URL: "http://preview-service:3003"
+      COMPRESSION_SERVICE_URL: "http://compression-service:3004"
+      WEBHOOK_SERVICE_URL: "http://webhook-service:3005"
+      SCHEDULER_SERVICE_URL: "http://scheduler-service:3006"
+      ACCESS_ANALYTICS_SERVICE_URL: "http://access-analytics-service:3007"
+      BACKUP_SERVICE_URL: "http://backup-service:3008"
+      API_KEY: ""
+      MONGO_URI: "mongodb://mongo:27017/webhook-db"
+      MONGO_RETRY_CONNECTION_DELAY_MS: "5000"
+      KAFKA_BROKERS: "kafka:9092"
+      KAFKA_TOPIC: "events"
+      KAFKA_STATUS_TOPIC: "webhook-status"
+      KAFKA_DEAD_LETTER_TOPIC: "webhook-dead-letter"
+      KAFKA_CLIENT_ID: "webhook-service"
+      KAFKA_GROUP_ID: "webhook-service-group"
+      KAFKA_RETRY_CONNECTION_DELAY_MS: "5000"
+      HTTP_TIMEOUT_MS: "5000"
+      WEBHOOK_RETRY_COUNT: "3"
+      WEBHOOK_RETRY_DELAY_MS: "2000"
+      ENABLE_SAMPLE_WEBHOOK_SEED: "false"
+      SAMPLE_WEBHOOK_URL: ""
+      SAMPLE_WEBHOOK_NAME: "sample-webhook-receiver"
+    depends_on:
+      - jaeger
+
+  scheduler-service:
+    build:
+      context: ./services/scheduler-service
+    image: pm3/scheduler-service:local
+    ports:
+      - "3006:3006"
+    environment:
+      NODE_ENV: "development"
+      SERVICE_NAME: "scheduler-service"
+      PORT: "3006"
+      OTEL_TRACING_ENABLED: "true"
+      OTEL_SERVICE_NAME: "scheduler-service"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger:4318/v1/traces"
+      METRICS_SERVICE_URL: "http://metrics-service:3001"
+      NOTIFICATION_SERVICE_URL: "http://notification-service:3002"
+      PREVIEW_SERVICE_URL: "http://preview-service:3003"
+      COMPRESSION_SERVICE_URL: "http://compression-service:3004"
+      WEBHOOK_SERVICE_URL: "http://webhook-service:3005"
+      SCHEDULER_SERVICE_URL: "http://scheduler-service:3006"
+      ACCESS_ANALYTICS_SERVICE_URL: "http://access-analytics-service:3007"
+      BACKUP_SERVICE_URL: "http://backup-service:3008"
+      MONGO_URI: "mongodb://mongo:27017/scheduler-db"
+      CRON_INTERVAL: "*/10 * * * * *"
+      RETRY_LIMITS: "3"
+      KAFKA_TOPIC: "events"
+      KAFKA_CLIENT_ID: "scheduler-service"
+      KAFKA_BROKER: "kafka:9092"
+      JOB_TIMEOUT_MS: "60000"
+    depends_on:
+      - jaeger
+
+  access-analytics-service:
+    build:
+      context: ./services/access-analytics-service
+    image: pm3/access-analytics-service:local
+    ports:
+      - "3007:3007"
+    environment:
+      NODE_ENV: "development"
+      SERVICE_NAME: "access-analytics-service"
+      PORT: "3007"
+      OTEL_TRACING_ENABLED: "true"
+      OTEL_SERVICE_NAME: "access-analytics-service"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger:4318/v1/traces"
+      METRICS_SERVICE_URL: "http://metrics-service:3001"
+      NOTIFICATION_SERVICE_URL: "http://notification-service:3002"
+      PREVIEW_SERVICE_URL: "http://preview-service:3003"
+      COMPRESSION_SERVICE_URL: "http://compression-service:3004"
+      WEBHOOK_SERVICE_URL: "http://webhook-service:3005"
+      SCHEDULER_SERVICE_URL: "http://scheduler-service:3006"
+      ACCESS_ANALYTICS_SERVICE_URL: "http://access-analytics-service:3007"
+      BACKUP_SERVICE_URL: "http://backup-service:3008"
+    depends_on:
+      - jaeger
+
+  backup-service:
+    build:
+      context: ./services/backup-service
+    image: pm3/backup-service:local
+    ports:
+      - "3008:3008"
+    environment:
+      NODE_ENV: "development"
+      SERVICE_NAME: "backup-service"
+      PORT: "3008"
+      OTEL_TRACING_ENABLED: "true"
+      OTEL_SERVICE_NAME: "backup-service"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger:4318/v1/traces"
+      METRICS_SERVICE_URL: "http://metrics-service:3001"
+      NOTIFICATION_SERVICE_URL: "http://notification-service:3002"
+      PREVIEW_SERVICE_URL: "http://preview-service:3003"
+      COMPRESSION_SERVICE_URL: "http://compression-service:3004"
+      WEBHOOK_SERVICE_URL: "http://webhook-service:3005"
+      SCHEDULER_SERVICE_URL: "http://scheduler-service:3006"
+      ACCESS_ANALYTICS_SERVICE_URL: "http://access-analytics-service:3007"
+      BACKUP_SERVICE_URL: "http://backup-service:3008"
+    depends_on:
+      - jaeger
 
   prometheus:
-    image: prom/prometheus:v2.54.1
-    command:
-      - --config.file=/etc/prometheus/prometheus.yml
+    image: prom/prometheus:latest
     volumes:
       - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
       - "9090:9090"
-    depends_on:
-      - metrics-service
-      - notification-service
-
-  loki:
-    image: grafana/loki:3.2.1
-    command: -config.file=/etc/loki/local-config.yaml
-    volumes:
-      - ./observability/loki-config.yml:/etc/loki/local-config.yaml:ro
-    ports:
-      - "3100:3100"
-
-  promtail:
-    image: grafana/promtail:3.2.1
-    command: -config.file=/etc/promtail/config.yml
-    volumes:
-      - ./observability/promtail-config.yml:/etc/promtail/config.yml:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    depends_on:
-      - loki
 
   grafana:
-    image: grafana/grafana:11.2.2
+    image: grafana/grafana:latest
     ports:
-      - "3002:3000"
-    environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
-    depends_on:
-      - prometheus
-      - loki
+      - "3000:3000"
+    volumes:
+      - ./observability/grafana:/var/lib/grafana/dashboards:ro
 
   jaeger:
-    image: jaegertracing/all-in-one:1.62.0
+    image: jaegertracing/all-in-one:latest
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
     ports:
       - "16686:16686"
       - "4318:4318"
 
   n8n:
-    image: n8nio/n8n:1.62.5
+    image: n8nio/n8n:latest
     ports:
       - "5678:5678"
-    environment:
-      N8N_BASIC_AUTH_ACTIVE: "false"
-      N8N_HOST: localhost
-      WEBHOOK_URL: http://localhost:5678/
 
 volumes:
-  metrics-db-data:
-  notification-db-data:
+  mongo_data:

@@ -1,0 +1,12 @@
+module.exports = {
+  openapi: '3.0.3',
+  info: { title: 'Compression Service API', version: '1.0.0' },
+  paths: {
+    '/health': { get: { summary: 'Liveness check', responses: { 200: { description: 'OK' } } } },
+    '/ready': { get: { summary: 'Readiness check', responses: { 200: { description: 'Ready' } } } },
+    '/metrics': { get: { summary: 'Prometheus metrics', responses: { 200: { description: 'Metrics' } } } },
+    '/docs': { get: { summary: 'Swagger UI', responses: { 200: { description: 'Docs' } } } },
+    '/api-docs': { get: { summary: 'Swagger redirect', responses: { 302: { description: 'Redirect' } } } },
+    '/api/compression-service/process': { post: { summary: 'Process service payload', responses: { 200: { description: 'Processed' }, 400: { description: 'Validation error' } } } }
+  }
+};

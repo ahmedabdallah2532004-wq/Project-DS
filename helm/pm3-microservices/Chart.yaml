@@ -1,0 +1,6 @@
+apiVersion: v2
+name: pm3-microservices
+description: PM3 chart for eight microservices.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
