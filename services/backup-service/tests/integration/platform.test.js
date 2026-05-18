@@ -21,6 +21,6 @@ describe('backup-service platform endpoints', () => {
   });
   test('POST process handles happy path', async () => {
     const response = await request(app).post('/api/backup-service/process').send({ fileId: 'f1' }).expect(200);
-    expect(response.body.service).toBe('backup-service');
+    expect(response.body.meta.service).toBe('backup-service');
   });
 });

@@ -21,6 +21,6 @@ describe('compression-service platform endpoints', () => {
   });
   test('POST process handles happy path', async () => {
     const response = await request(app).post('/api/compression-service/process').send({ fileId: 'f1' }).expect(200);
-    expect(response.body.service).toBe('compression-service');
+    expect(response.body.meta.service).toBe('compression-service');
   });
 });

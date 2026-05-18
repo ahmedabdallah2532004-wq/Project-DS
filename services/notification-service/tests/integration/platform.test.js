@@ -21,6 +21,6 @@ describe('notification-service platform endpoints', () => {
   });
   test('POST process handles happy path', async () => {
     const response = await request(app).post('/api/notification-service/process').send({ fileId: 'f1' }).expect(200);
-    expect(response.body.service).toBe('notification-service');
+    expect(response.body.meta.service).toBe('notification-service');
   });
 });

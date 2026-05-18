@@ -21,6 +21,6 @@ describe('access-analytics-service platform endpoints', () => {
   });
   test('POST process handles happy path', async () => {
     const response = await request(app).post('/api/access-analytics-service/process').send({ fileId: 'f1' }).expect(200);
-    expect(response.body.service).toBe('access-analytics-service');
+    expect(response.body.meta.service).toBe('access-analytics-service');
   });
 });

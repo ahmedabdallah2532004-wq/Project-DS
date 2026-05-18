@@ -21,6 +21,6 @@ describe('preview-service platform endpoints', () => {
   });
   test('POST process handles happy path', async () => {
     const response = await request(app).post('/api/preview-service/process').send({ fileId: 'f1' }).expect(200);
-    expect(response.body.service).toBe('preview-service');
+    expect(response.body.meta.service).toBe('preview-service');
   });
 });
