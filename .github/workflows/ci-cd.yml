@@ -63,7 +63,7 @@ jobs:
       - name: Docker build
         run: |
           for service in $SERVICES; do
-            docker build -t pm3/$service:local services/$service
+            docker build -t pm3/$service:local -f services/$service/Dockerfile .
           done
 
       - name: Docker push
@@ -87,7 +87,7 @@ jobs:
         run: |
           args=""
           for service in $SERVICES; do
-            args="$args --set services.$service.image.repository=${{ secrets.DOCKER_USERNAME }}/$service"
-            args="$args --set services.$service.image.tag=${{ github.sha }}"
+            args="$args --set \"${service}.image.repository=${{ secrets.DOCKER_USERNAME }}/${service}\""
+            args="$args --set \"${service}.image.tag=${{ github.sha }}\""
           done
-          helm upgrade --install cse474 ./helm/pm3-microservices --namespace cse474-prod --create-namespace $args
+          helm upgrade --install cse474 ./chart --namespace cse474-prod --create-namespace --set defaults.image.pullPolicy=IfNotPresent $args

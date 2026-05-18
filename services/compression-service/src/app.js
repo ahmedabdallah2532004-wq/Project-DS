@@ -7,6 +7,7 @@ const logger = require('./logger');
 const { requestContext } = require('./requestContext');
 const swaggerDocument = require('./swagger');
 const serviceLogic = require('./serviceLogic');
+const responseHelper = require('../../../shared/responseHelper');
 
 const app = express();
 const register = new client.Registry();
@@ -17,12 +18,28 @@ const httpRequestsTotal = new client.Counter({
   labelNames: ['method', 'path', 'status_code'],
   registers: [register]
 });
+const httpRequestDuration = new client.Histogram({
+  name: 'compression_service_http_request_duration_seconds',
+  help: 'Duration of HTTP requests in seconds.',
+  labelNames: ['method', 'path', 'status_code'],
+  buckets: [0.01, 0.05, 0.1, 0.5, 1, 2, 5],
+  registers: [register]
+});
 
 app.use(requestContext);
 app.use(express.json({ limit: '1mb' }));
 app.use((req, res, next) => {
+  const start = process.hrtime();
   logger.info('Incoming request.', { method: req.method, path: req.originalUrl });
-  res.on('finish', () => httpRequestsTotal.inc({ method: req.method, path: req.route?.path || req.path, status_code: String(res.statusCode) }));
+  res.on('finish', () => {
+    const diff = process.hrtime(start);
+    const durationInSeconds = diff[0] + diff[1] / 1e9;
+    const path = req.route?.path || req.path;
+    const labels = { method: req.method, path, status_code: String(res.statusCode) };
+    
+    httpRequestsTotal.inc(labels);
+    httpRequestDuration.observe(labels, durationInSeconds);
+  });
   next();
 });
 
@@ -42,16 +59,16 @@ app.get('/api-docs', (req, res) => res.redirect('/docs'));
 app.post('/api/compression-service/process', (req, res, next) => {
   try {
     serviceLogic.validatePayload(req.body);
-    res.status(200).json({ service: config.serviceName, data: serviceLogic.summarizePayload(req.body) });
+    responseHelper.successResponse(res, serviceLogic.summarizePayload(req.body), 'Payload processed successfully');
   } catch (error) {
     next(error);
   }
 });
-app.use((req, res) => res.status(404).json({ message: 'Route not found.', path: req.originalUrl }));
+app.use((req, res) => responseHelper.errorResponse(res, 'Route not found.', 404));
 app.use((error, req, res, _next) => {
   const statusCode = error.statusCode || 500;
   logger.error('Request failed.', { method: req.method, path: req.originalUrl, statusCode, error: error.message });
-  res.status(statusCode).json({ message: statusCode === 500 ? 'Internal server error.' : error.message });
+  responseHelper.errorResponse(res, statusCode === 500 ? 'Internal server error.' : error.message, statusCode);
 });
 
 module.exports = app;

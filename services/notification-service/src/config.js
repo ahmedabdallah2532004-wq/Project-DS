@@ -7,5 +7,11 @@ function toNumber(value, fallback) {
 
 module.exports = {
   serviceName: process.env.SERVICE_NAME || 'notification-service',
-  port: toNumber(process.env.PORT, 3002)
+  port: toNumber(process.env.PORT, 3002),
+  kafka: {
+    clientId: process.env.KAFKA_CLIENT_ID || 'notification-service',
+    brokers: (process.env.KAFKA_BROKERS || 'kafka:9092').split(','),
+    groupId: process.env.KAFKA_GROUP_ID || 'notification-service-group',
+    retryConnectionDelayMs: toNumber(process.env.KAFKA_RETRY_CONNECTION_DELAY_MS, 5000)
+  }
 };

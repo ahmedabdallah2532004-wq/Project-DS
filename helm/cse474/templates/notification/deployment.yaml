@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.notification.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.notification.name }}
+spec:
+  replicas: {{ .Values.notification.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.notification.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.notification.name }}
+    spec:
+      containers:
+      - name: {{ .Values.notification.name }}
+        image: "{{ .Values.notification.image.repository }}:{{ .Values.notification.image.tag }}"
+        ports:
+        - containerPort: {{ .Values.notification.service.port }}
+        resources:
+          {{- toYaml .Values.notification.resources | nindent 10 }}
+        env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.notification.name }}-secret
+              key: DB_PASSWORD
+        envFrom:
+        - configMapRef:
+            name: {{ .Values.notification.name }}-config
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: {{ .Values.notification.service.port }}
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.notification.service.port }}
+          initialDelaySeconds: 15
+          periodSeconds: 20

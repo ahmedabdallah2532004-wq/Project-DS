@@ -20,13 +20,24 @@ const httpRequestsTotal = new client.Counter({
   registers: [register]
 });
 
+const httpRequestDuration = new client.Histogram({
+  name: 'webhook_service_http_request_duration_seconds',
+  help: 'Duration of HTTP requests handled by webhook-service.',
+  labelNames: ['method', 'route', 'status_code'],
+  buckets: [0.01, 0.05, 0.1, 0.5, 1, 2, 5],
+  registers: [register]
+});
+
 function metricsMiddleware(req, res, next) {
+  const start = process.hrtime();
   res.on('finish', () => {
-    httpRequestsTotal.inc({
-      method: req.method,
-      route: req.route?.path || req.path,
-      status_code: String(res.statusCode)
-    });
+    const diff = process.hrtime(start);
+    const durationInSeconds = diff[0] + diff[1] / 1e9;
+    const route = req.route?.path || req.path;
+    const labels = { method: req.method, route, status_code: String(res.statusCode) };
+    
+    httpRequestsTotal.inc(labels);
+    httpRequestDuration.observe(labels, durationInSeconds);
   });
 
   next();

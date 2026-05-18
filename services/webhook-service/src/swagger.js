@@ -38,8 +38,38 @@ module.exports = {
     '/process-file': {
       post: {
         summary: 'Run full PM3 file processing flow',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  fileName: { type: 'string', example: 'sample.pdf' },
+                  fileType: { type: 'string', example: 'pdf' },
+                  userId: { type: 'string', example: 'user-1' }
+                },
+                required: ['fileName', 'fileType', 'userId']
+              }
+            }
+          }
+        },
         responses: {
-          200: { description: 'Flow completed' },
+          200: {
+            description: 'Flow completed',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'string' },
+                    job_id: { type: 'string' },
+                    steps: { type: 'object' }
+                  }
+                }
+              }
+            }
+          },
           400: { description: 'Validation error' }
         }
       }
@@ -51,6 +81,21 @@ module.exports = {
       },
       post: {
         summary: 'Register a webhook',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  url: { type: 'string', example: 'http://example.com/webhook' },
+                  events: { type: 'array', items: { type: 'string' }, example: ['upload.completed'] }
+                },
+                required: ['url']
+              }
+            }
+          }
+        },
         responses: {
           201: { description: 'Webhook created' },
           400: { description: 'Validation error' }
@@ -66,6 +111,21 @@ module.exports = {
     '/test-webhook': {
       post: {
         summary: 'Manually dispatch a test webhook event',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  event: { type: 'string', example: 'upload.completed' },
+                  payload: { type: 'object' }
+                },
+                required: ['event']
+              }
+            }
+          }
+        },
         responses: {
           200: { description: 'Test event processed' },
           400: { description: 'Validation error' }

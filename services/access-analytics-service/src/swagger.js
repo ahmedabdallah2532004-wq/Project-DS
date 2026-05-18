@@ -5,8 +5,68 @@ module.exports = {
     '/health': { get: { summary: 'Liveness check', responses: { 200: { description: 'OK' } } } },
     '/ready': { get: { summary: 'Readiness check', responses: { 200: { description: 'Ready' } } } },
     '/metrics': { get: { summary: 'Prometheus metrics', responses: { 200: { description: 'Metrics' } } } },
-    '/docs': { get: { summary: 'Swagger UI', responses: { 200: { description: 'Docs' } } } },
-    '/api-docs': { get: { summary: 'Swagger redirect', responses: { 302: { description: 'Redirect' } } } },
-    '/api/access-analytics-service/process': { post: { summary: 'Process service payload', responses: { 200: { description: 'Processed' }, 400: { description: 'Validation error' } } } }
+    '/api/access-analytics-service/process': {
+      post: {
+        summary: 'Process service payload',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  fileId: { type: 'string', example: 'f1' }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Processed successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean' },
+                    message: { type: 'string' },
+                    data: { type: 'object' }
+                  }
+                }
+              }
+            }
+          },
+          400: {
+            description: 'Validation error',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean' },
+                    message: { type: 'string' }
+                  }
+                }
+              }
+            }
+          },
+          500: {
+            description: 'Internal server error',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean' },
+                    message: { type: 'string' }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 };

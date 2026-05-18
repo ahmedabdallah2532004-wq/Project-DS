@@ -1,8 +1,7 @@
-//ده اللي بيوصل الـ Scheduler بالـ Cluster بتاع Kafka.
 const { Kafka } = require('kafkajs');
 const config = require('../config/config');
 const logger = require('../config/logger');
-//الـ Class ده مسؤول إنه يبعت أي حدث (Event) بيحصل هنا.
+const topics = require('../../../../contracts/topics');
 
 class SchedulerProducer {
   constructor() {
@@ -13,10 +12,38 @@ class SchedulerProducer {
     this.producer = kafka.producer();
     this.isConnected = false;
   }
-  //بيربط الـ Producer بالـ Kafka Broker.
+
+  async ensureTopics() {
+    const kafka = new Kafka({
+      clientId: config.kafka.clientId,
+      brokers: config.kafka.brokers,
+    });
+    const admin = kafka.admin();
+    await admin.connect();
+    try {
+      await admin.createTopics({
+        waitForLeaders: true,
+        topics: [
+          {
+            topic: topics.GC_TRIGGERED,
+            numPartitions: 1,
+            replicationFactor: 1
+          },
+          {
+            topic: topics.BACKUP_TRIGGERED,
+            numPartitions: 1,
+            replicationFactor: 1
+          }
+        ]
+      });
+    } finally {
+      await admin.disconnect();
+    }
+  }
 
   async connect() {
     try {
+      await this.ensureTopics();
       await this.producer.connect();
       this.isConnected = true;
       logger.info('Kafka producer connected.', { brokers: config.kafka.brokers });
@@ -24,9 +51,8 @@ class SchedulerProducer {
       logger.error('Kafka producer connection failed.', { error: error.message });
     }
   }
-  //بيبعت الـ Message.
 
-  async sendEvent(eventKey, payload) {
+  async sendEvent(topic, payload) {
     if (!this.isConnected) {
       logger.warn('Kafka producer not connected. Attempting to connect.');
       await this.connect();
@@ -34,22 +60,22 @@ class SchedulerProducer {
 
     try {
       await this.producer.send({
-        topic: config.kafkaTopic,
+        topic: topic,
         messages: [
           {
-            key: eventKey,
+            key: payload.id || payload.request_id || 'scheduler_event',
             value: JSON.stringify({
-              event: eventKey,
+              event: topic,
               payload,
               timestamp: new Date().toISOString(),
             }),
           },
         ],
       });
-      logger.info('Kafka event produced.', { eventKey, topic: config.kafkaTopic });
+      logger.info('Kafka event produced.', { eventKey: topic, topic: topic });
       return true;
     } catch (error) {
-      logger.error('Kafka event publish failed.', { eventKey, error: error.message });
+      logger.error('Kafka event publish failed.', { eventKey: topic, error: error.message });
       return false;
     }
   }

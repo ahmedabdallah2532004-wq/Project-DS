@@ -22,7 +22,7 @@ async function recordSidecarEvents(jobId, stage, payload, requestId) {
     events.push(
       postStep(
         serviceUrl('ACCESS_ANALYTICS_SERVICE_URL'),
-        '/analytics/event',
+        '/api/access-analytics-service/process',
         { jobId, stage, payload },
         requestId
       )
@@ -33,7 +33,7 @@ async function recordSidecarEvents(jobId, stage, payload, requestId) {
     events.push(
       postStep(
         serviceUrl('METRICS_SERVICE_URL'),
-        '/metrics/event',
+        '/api/metrics-service/process',
         { jobId, service: 'webhook-service', stage },
         requestId
       )
@@ -47,12 +47,12 @@ async function processFile(file, requestId) {
   const jobId = crypto.randomUUID ? crypto.randomUUID() : crypto.randomBytes(16).toString('hex');
   const steps = {};
 
-  const preview = await postStep(serviceUrl('PREVIEW_SERVICE_URL'), '/preview', { jobId, file }, requestId);
+  const preview = await postStep(serviceUrl('PREVIEW_SERVICE_URL'), '/api/preview-service/process', { jobId, file }, requestId);
   steps.preview = preview.status || 'completed';
 
   const compression = await postStep(
     serviceUrl('COMPRESSION_SERVICE_URL'),
-    '/compress',
+    '/api/compression-service/process',
     { jobId, file, preview },
     requestId
   );
@@ -60,7 +60,7 @@ async function processFile(file, requestId) {
 
   const backup = await postStep(
     serviceUrl('BACKUP_SERVICE_URL'),
-    '/backup',
+    '/api/backup-service/process',
     { jobId, file, preview, compression },
     requestId
   );
@@ -68,7 +68,7 @@ async function processFile(file, requestId) {
 
   const notification = await postStep(
     serviceUrl('NOTIFICATION_SERVICE_URL'),
-    '/notify',
+    '/api/notification-service/process',
     { jobId, userId: file.userId, fileName: file.fileName, backup },
     requestId
   );

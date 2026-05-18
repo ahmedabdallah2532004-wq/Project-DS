@@ -4,6 +4,7 @@ const { supportedEventTypes } = require('../config/eventTypes');
 const processFileService = require('../services/processFileService');
 const webhookService = require('../services/webhookService');
 const webhookRegistryService = require('../services/webhookRegistryService');
+const responseHelper = require('../../../../shared/responseHelper');
 
 
 //عشان لما تعمل Webhook لازم الـ URL يكون فعلاً URL صالح.
@@ -141,7 +142,7 @@ async function processFile(req, res) {
 
   const result = await processFileService.processFile({ fileName, fileType, userId }, req.requestId);
 
-  return res.status(200).json(result);
+  return responseHelper.successResponse(res, result, 'File processed successfully');
 }
 
 module.exports = {

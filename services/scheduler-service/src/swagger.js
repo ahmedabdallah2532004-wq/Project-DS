@@ -50,6 +50,22 @@ module.exports = {
     '/create-job': {
       post: {
         summary: 'Create a scheduled job',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string', example: 'backup-job' },
+                  schedule: { type: 'string', example: '0 0 * * *' },
+                  action: { type: 'string', example: 'backup' }
+                },
+                required: ['name', 'schedule', 'action']
+              }
+            }
+          }
+        },
         responses: {
           201: { description: 'Job created' },
           400: { description: 'Validation error' }
@@ -59,6 +75,20 @@ module.exports = {
     '/run-job': {
       post: {
         summary: 'Run a job immediately',
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  jobId: { type: 'string', example: 'job-1' }
+                },
+                required: ['jobId']
+              }
+            }
+          }
+        },
         responses: {
           200: { description: 'Job execution started' },
           400: { description: 'Validation error' }

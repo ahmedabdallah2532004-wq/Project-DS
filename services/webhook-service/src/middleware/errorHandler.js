@@ -1,10 +1,8 @@
 const logger = require('../config/logger');
+const responseHelper = require('../../../../shared/responseHelper');
 
 function notFound(req, res) {
-  res.status(404).json({
-    message: 'Route not found.',
-    path: req.originalUrl
-  });
+  responseHelper.errorResponse(res, 'Route not found.', 404);
 }
 
 function errorHandler(error, req, res, _next) {
@@ -17,9 +15,7 @@ function errorHandler(error, req, res, _next) {
     error: error.message
   });
 
-  res.status(statusCode).json({
-    message: statusCode === 500 ? 'Internal server error.' : error.message
-  });
+  responseHelper.errorResponse(res, statusCode === 500 ? 'Internal server error.' : error.message, statusCode);
 }
 
 module.exports = {

@@ -1,4 +1,5 @@
 const logger = require('../config/logger');
+const responseHelper = require('../../../../shared/responseHelper');
 
 const errorHandler = (err, req, res, _next) => {
   logger.error('Request failed.', {
@@ -7,10 +8,7 @@ const errorHandler = (err, req, res, _next) => {
     error: err.message
   });
 
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || 'Internal Server Error'
-  });
+  responseHelper.errorResponse(res, err.message || 'Internal Server Error', err.status || 500);
 };
 
 module.exports = errorHandler;

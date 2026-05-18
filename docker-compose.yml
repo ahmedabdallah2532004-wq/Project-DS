@@ -24,7 +24,8 @@ services:
 
   metrics-service:
     build:
-      context: ./services/metrics-service
+      context: .
+      dockerfile: ./services/metrics-service/Dockerfile
     image: pm3/metrics-service:local
     ports:
       - "3001:3001"
@@ -48,7 +49,8 @@ services:
 
   notification-service:
     build:
-      context: ./services/notification-service
+      context: .
+      dockerfile: ./services/notification-service/Dockerfile
     image: pm3/notification-service:local
     ports:
       - "3002:3002"
@@ -72,7 +74,8 @@ services:
 
   preview-service:
     build:
-      context: ./services/preview-service
+      context: .
+      dockerfile: ./services/preview-service/Dockerfile
     image: pm3/preview-service:local
     ports:
       - "3003:3003"
@@ -96,7 +99,8 @@ services:
 
   compression-service:
     build:
-      context: ./services/compression-service
+      context: .
+      dockerfile: ./services/compression-service/Dockerfile
     image: pm3/compression-service:local
     ports:
       - "3004:3004"
@@ -120,7 +124,8 @@ services:
 
   webhook-service:
     build:
-      context: ./services/webhook-service
+      context: .
+      dockerfile: ./services/webhook-service/Dockerfile
     image: pm3/webhook-service:local
     ports:
       - "3005:3005"
@@ -160,7 +165,8 @@ services:
 
   scheduler-service:
     build:
-      context: ./services/scheduler-service
+      context: .
+      dockerfile: ./services/scheduler-service/Dockerfile
     image: pm3/scheduler-service:local
     ports:
       - "3006:3006"
@@ -191,7 +197,8 @@ services:
 
   access-analytics-service:
     build:
-      context: ./services/access-analytics-service
+      context: .
+      dockerfile: ./services/access-analytics-service/Dockerfile
     image: pm3/access-analytics-service:local
     ports:
       - "3007:3007"
@@ -215,7 +222,8 @@ services:
 
   backup-service:
     build:
-      context: ./services/backup-service
+      context: .
+      dockerfile: ./services/backup-service/Dockerfile
     image: pm3/backup-service:local
     ports:
       - "3008:3008"
@@ -247,7 +255,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     ports:
-      - "3000:3000"
+      - "3010:3000"
     volumes:
       - ./observability/grafana:/var/lib/grafana/dashboards:ro
 
@@ -263,6 +271,21 @@ services:
     image: n8nio/n8n:latest
     ports:
       - "5678:5678"
+
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./observability/promtail.yml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
 
 volumes:
   mongo_data:

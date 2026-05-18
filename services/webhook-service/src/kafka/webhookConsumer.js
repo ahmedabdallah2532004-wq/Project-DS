@@ -4,6 +4,7 @@ const kafka = require('../config/kafka');
 const logger = require('../config/logger');
 const sleep = require('../utils/sleep');
 const webhookService = require('../services/webhookService');
+const topics = require('../../../../contracts/topics');
 
 let consumer;
 //ده بيخزن حالة الـ Consumer:
@@ -78,10 +79,19 @@ async function start() {
       });
 
       await consumer.connect();
-      await consumer.subscribe({
-        topic: config.kafka.topic,
-        fromBeginning: false
-      });
+      const topicsToSubscribe = [
+        topics.GC_COMPLETED,
+        topics.METRICS_THRESHOLD_EXCEEDED,
+        topics.NOTIFICATION_SENT,
+        topics.BACKUP_COMPLETED
+      ];
+
+      for (const t of topicsToSubscribe) {
+        await consumer.subscribe({
+          topic: t,
+          fromBeginning: false
+        });
+      }
 
       consumerStatus.connected = true;
       consumerStatus.lastError = null;
