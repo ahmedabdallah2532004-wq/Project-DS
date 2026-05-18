@@ -25,9 +25,9 @@ describe('full file processing flow', () => {
       .send({ fileName: 'sample.pdf', fileType: 'pdf', userId: 'user-1' })
       .expect(200);
 
-    expect(response.body.status).toBe('completed');
-    expect(response.body.job_id).toBeTruthy();
-    expect(response.body.steps).toMatchObject({
+    expect(response.body.data.status).toBe('completed');
+    expect(response.body.data.job_id).toBeTruthy();
+    expect(response.body.data.steps).toMatchObject({
       preview: 'completed',
       compression: 'completed',
       backup: 'completed',
