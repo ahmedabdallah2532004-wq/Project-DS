@@ -1,0 +1,90 @@
+global:
+  namespace: cse474-prod
+
+defaults:
+  image:
+    repository: pm3
+    pullPolicy: Never
+    tag: "local"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  env:
+    NODE_ENV: "development"
+    OTEL_TRACING_ENABLED: "true"
+    OTEL_EXPORTER_OTLP_ENDPOINT: "http://jaeger:4318/v1/traces"
+    KAFKA_BROKERS: "kafka:9092"
+    METRICS_SERVICE_URL: "http://metrics-service:3001"
+    NOTIFICATION_SERVICE_URL: "http://notification-service:3002"
+    PREVIEW_SERVICE_URL: "http://preview-service:3003"
+    COMPRESSION_SERVICE_URL: "http://compression-service:3004"
+    WEBHOOK_SERVICE_URL: "http://webhook-service:3005"
+    SCHEDULER_SERVICE_URL: "http://scheduler-service:3006"
+    ACCESS_ANALYTICS_SERVICE_URL: "http://access-analytics-service:3007"
+    BACKUP_SERVICE_URL: "http://backup-service:3008"
+
+metrics-service:
+  replicas: 2
+  port: 3001
+
+notification-service:
+  replicas: 2
+  port: 3002
+
+preview-service:
+  replicas: 2
+  port: 3003
+
+compression-service:
+  replicas: 2
+  port: 3004
+
+webhook-service:
+  replicas: 2
+  port: 3005
+  env:
+    API_KEY: ""
+    MONGO_URI: "mongodb://mongo:27017/webhook-db"
+    MONGO_RETRY_CONNECTION_DELAY_MS: "5000"
+    KAFKA_TOPIC: "events"
+    KAFKA_STATUS_TOPIC: "webhook-status"
+    KAFKA_DEAD_LETTER_TOPIC: "webhook-dead-letter"
+    KAFKA_CLIENT_ID: "webhook-service"
+    KAFKA_GROUP_ID: "webhook-service-group"
+    KAFKA_RETRY_CONNECTION_DELAY_MS: "5000"
+    HTTP_TIMEOUT_MS: "5000"
+    WEBHOOK_RETRY_COUNT: "3"
+    WEBHOOK_RETRY_DELAY_MS: "2000"
+    ENABLE_SAMPLE_WEBHOOK_SEED: "false"
+    SAMPLE_WEBHOOK_URL: ""
+    SAMPLE_WEBHOOK_NAME: "sample-webhook-receiver"
+
+scheduler-service:
+  replicas: 2
+  port: 3006
+  env:
+    MONGO_URI: "mongodb://mongo:27017/scheduler-db"
+    CRON_INTERVAL: "*/10 * * * * *"
+    RETRY_LIMITS: "3"
+    KAFKA_TOPIC: "events"
+    KAFKA_CLIENT_ID: "scheduler-service"
+    KAFKA_BROKER: "kafka:9092"
+    JOB_TIMEOUT_MS: "60000"
+
+access-analytics-service:
+  replicas: 2
+  port: 3007
+
+backup-service:
+  replicas: 2
+  port: 3008
+
+kafka:
+  brokers: "kafka:9092"
+
+mongodb:
+  uri: "mongodb://mongo:27017"

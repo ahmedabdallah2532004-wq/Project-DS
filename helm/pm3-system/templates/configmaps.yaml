@@ -1,0 +1,22 @@
+{{- range $name, $config := .Values }}
+{{- if and (ne $name "global") (ne $name "defaults") (ne $name "kafka") (ne $name "mongodb") }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $name }}-config
+  namespace: {{ $.Values.global.namespace }}
+data:
+  SERVICE_NAME: "{{ $name }}"
+  PORT: "{{ $config.port }}"
+  OTEL_SERVICE_NAME: "{{ $name }}"
+  {{- range $k, $v := $.Values.defaults.env }}
+  {{ $k }}: "{{ $v }}"
+  {{- end }}
+  {{- if $config.env }}
+  {{- range $k, $v := $config.env }}
+  {{ $k }}: "{{ $v }}"
+  {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}

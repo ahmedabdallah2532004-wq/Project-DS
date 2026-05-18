@@ -1,0 +1,321 @@
+{
+  "namespace": "cse474-prod",
+  "services": {
+    "metrics-service": {
+      "replicaCount": 2,
+      "image": {
+        "repository": "your-dockerhub/metrics-service",
+        "tag": "latest",
+        "pullPolicy": "IfNotPresent"
+      },
+      "port": 3001,
+      "ingressPath": "/metrics(/|$)(.*)",
+      "env": {
+        "NODE_ENV": "development",
+        "SERVICE_NAME": "metrics-service",
+        "PORT": "3001",
+        "OTEL_TRACING_ENABLED": "false",
+        "OTEL_SERVICE_NAME": "metrics-service",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4318/v1/traces",
+        "METRICS_SERVICE_URL": "http://metrics-service:3001",
+        "NOTIFICATION_SERVICE_URL": "http://notification-service:3002",
+        "PREVIEW_SERVICE_URL": "http://preview-service:3003",
+        "COMPRESSION_SERVICE_URL": "http://compression-service:3004",
+        "WEBHOOK_SERVICE_URL": "http://webhook-service:3005",
+        "SCHEDULER_SERVICE_URL": "http://scheduler-service:3006",
+        "ACCESS_ANALYTICS_SERVICE_URL": "http://access-analytics-service:3007",
+        "BACKUP_SERVICE_URL": "http://backup-service:3008"
+      },
+      "resources": {
+        "requests": {
+          "cpu": "100m",
+          "memory": "128Mi"
+        },
+        "limits": {
+          "cpu": "500m",
+          "memory": "512Mi"
+        }
+      }
+    },
+    "notification-service": {
+      "replicaCount": 2,
+      "image": {
+        "repository": "your-dockerhub/notification-service",
+        "tag": "latest",
+        "pullPolicy": "IfNotPresent"
+      },
+      "port": 3002,
+      "ingressPath": "/notification(/|$)(.*)",
+      "env": {
+        "NODE_ENV": "development",
+        "SERVICE_NAME": "notification-service",
+        "PORT": "3002",
+        "OTEL_TRACING_ENABLED": "false",
+        "OTEL_SERVICE_NAME": "notification-service",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4318/v1/traces",
+        "METRICS_SERVICE_URL": "http://metrics-service:3001",
+        "NOTIFICATION_SERVICE_URL": "http://notification-service:3002",
+        "PREVIEW_SERVICE_URL": "http://preview-service:3003",
+        "COMPRESSION_SERVICE_URL": "http://compression-service:3004",
+        "WEBHOOK_SERVICE_URL": "http://webhook-service:3005",
+        "SCHEDULER_SERVICE_URL": "http://scheduler-service:3006",
+        "ACCESS_ANALYTICS_SERVICE_URL": "http://access-analytics-service:3007",
+        "BACKUP_SERVICE_URL": "http://backup-service:3008"
+      },
+      "resources": {
+        "requests": {
+          "cpu": "100m",
+          "memory": "128Mi"
+        },
+        "limits": {
+          "cpu": "500m",
+          "memory": "512Mi"
+        }
+      }
+    },
+    "preview-service": {
+      "replicaCount": 2,
+      "image": {
+        "repository": "your-dockerhub/preview-service",
+        "tag": "latest",
+        "pullPolicy": "IfNotPresent"
+      },
+      "port": 3003,
+      "ingressPath": "/preview(/|$)(.*)",
+      "env": {
+        "NODE_ENV": "development",
+        "SERVICE_NAME": "preview-service",
+        "PORT": "3003",
+        "OTEL_TRACING_ENABLED": "false",
+        "OTEL_SERVICE_NAME": "preview-service",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4318/v1/traces",
+        "METRICS_SERVICE_URL": "http://metrics-service:3001",
+        "NOTIFICATION_SERVICE_URL": "http://notification-service:3002",
+        "PREVIEW_SERVICE_URL": "http://preview-service:3003",
+        "COMPRESSION_SERVICE_URL": "http://compression-service:3004",
+        "WEBHOOK_SERVICE_URL": "http://webhook-service:3005",
+        "SCHEDULER_SERVICE_URL": "http://scheduler-service:3006",
+        "ACCESS_ANALYTICS_SERVICE_URL": "http://access-analytics-service:3007",
+        "BACKUP_SERVICE_URL": "http://backup-service:3008"
+      },
+      "resources": {
+        "requests": {
+          "cpu": "100m",
+          "memory": "128Mi"
+        },
+        "limits": {
+          "cpu": "500m",
+          "memory": "512Mi"
+        }
+      }
+    },
+    "compression-service": {
+      "replicaCount": 2,
+      "image": {
+        "repository": "your-dockerhub/compression-service",
+        "tag": "latest",
+        "pullPolicy": "IfNotPresent"
+      },
+      "port": 3004,
+      "ingressPath": "/compression(/|$)(.*)",
+      "env": {
+        "NODE_ENV": "development",
+        "SERVICE_NAME": "compression-service",
+        "PORT": "3004",
+        "OTEL_TRACING_ENABLED": "false",
+        "OTEL_SERVICE_NAME": "compression-service",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4318/v1/traces",
+        "METRICS_SERVICE_URL": "http://metrics-service:3001",
+        "NOTIFICATION_SERVICE_URL": "http://notification-service:3002",
+        "PREVIEW_SERVICE_URL": "http://preview-service:3003",
+        "COMPRESSION_SERVICE_URL": "http://compression-service:3004",
+        "WEBHOOK_SERVICE_URL": "http://webhook-service:3005",
+        "SCHEDULER_SERVICE_URL": "http://scheduler-service:3006",
+        "ACCESS_ANALYTICS_SERVICE_URL": "http://access-analytics-service:3007",
+        "BACKUP_SERVICE_URL": "http://backup-service:3008"
+      },
+      "resources": {
+        "requests": {
+          "cpu": "100m",
+          "memory": "128Mi"
+        },
+        "limits": {
+          "cpu": "500m",
+          "memory": "512Mi"
+        }
+      }
+    },
+    "webhook-service": {
+      "replicaCount": 2,
+      "image": {
+        "repository": "your-dockerhub/webhook-service",
+        "tag": "latest",
+        "pullPolicy": "IfNotPresent"
+      },
+      "port": 3005,
+      "ingressPath": "/webhook(/|$)(.*)",
+      "env": {
+        "NODE_ENV": "development",
+        "SERVICE_NAME": "webhook-service",
+        "PORT": "3005",
+        "OTEL_TRACING_ENABLED": "false",
+        "OTEL_SERVICE_NAME": "webhook-service",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4318/v1/traces",
+        "METRICS_SERVICE_URL": "http://metrics-service:3001",
+        "NOTIFICATION_SERVICE_URL": "http://notification-service:3002",
+        "PREVIEW_SERVICE_URL": "http://preview-service:3003",
+        "COMPRESSION_SERVICE_URL": "http://compression-service:3004",
+        "WEBHOOK_SERVICE_URL": "http://webhook-service:3005",
+        "SCHEDULER_SERVICE_URL": "http://scheduler-service:3006",
+        "ACCESS_ANALYTICS_SERVICE_URL": "http://access-analytics-service:3007",
+        "BACKUP_SERVICE_URL": "http://backup-service:3008",
+        "API_KEY": "",
+        "MONGO_URI": "mongodb://127.0.0.1:27017/webhook-db",
+        "MONGO_RETRY_CONNECTION_DELAY_MS": "5000",
+        "KAFKA_BROKERS": "127.0.0.1:9092",
+        "KAFKA_TOPIC": "events",
+        "KAFKA_STATUS_TOPIC": "webhook-status",
+        "KAFKA_DEAD_LETTER_TOPIC": "webhook-dead-letter",
+        "KAFKA_CLIENT_ID": "webhook-service",
+        "KAFKA_GROUP_ID": "webhook-service-group",
+        "KAFKA_RETRY_CONNECTION_DELAY_MS": "5000",
+        "HTTP_TIMEOUT_MS": "5000",
+        "WEBHOOK_RETRY_COUNT": "3",
+        "WEBHOOK_RETRY_DELAY_MS": "2000",
+        "ENABLE_SAMPLE_WEBHOOK_SEED": "false",
+        "SAMPLE_WEBHOOK_URL": "",
+        "SAMPLE_WEBHOOK_NAME": "sample-webhook-receiver"
+      },
+      "resources": {
+        "requests": {
+          "cpu": "100m",
+          "memory": "128Mi"
+        },
+        "limits": {
+          "cpu": "500m",
+          "memory": "512Mi"
+        }
+      }
+    },
+    "scheduler-service": {
+      "replicaCount": 2,
+      "image": {
+        "repository": "your-dockerhub/scheduler-service",
+        "tag": "latest",
+        "pullPolicy": "IfNotPresent"
+      },
+      "port": 3006,
+      "ingressPath": "/scheduler(/|$)(.*)",
+      "env": {
+        "NODE_ENV": "development",
+        "SERVICE_NAME": "scheduler-service",
+        "PORT": "3006",
+        "OTEL_TRACING_ENABLED": "false",
+        "OTEL_SERVICE_NAME": "scheduler-service",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4318/v1/traces",
+        "METRICS_SERVICE_URL": "http://metrics-service:3001",
+        "NOTIFICATION_SERVICE_URL": "http://notification-service:3002",
+        "PREVIEW_SERVICE_URL": "http://preview-service:3003",
+        "COMPRESSION_SERVICE_URL": "http://compression-service:3004",
+        "WEBHOOK_SERVICE_URL": "http://webhook-service:3005",
+        "SCHEDULER_SERVICE_URL": "http://scheduler-service:3006",
+        "ACCESS_ANALYTICS_SERVICE_URL": "http://access-analytics-service:3007",
+        "BACKUP_SERVICE_URL": "http://backup-service:3008",
+        "MONGO_URI": "mongodb://127.0.0.1:27017/scheduler-db",
+        "CRON_INTERVAL": "*/10 * * * * *",
+        "RETRY_LIMITS": "3",
+        "KAFKA_TOPIC": "events",
+        "KAFKA_CLIENT_ID": "scheduler-service",
+        "KAFKA_BROKER": "127.0.0.1:9092",
+        "JOB_TIMEOUT_MS": "60000"
+      },
+      "resources": {
+        "requests": {
+          "cpu": "100m",
+          "memory": "128Mi"
+        },
+        "limits": {
+          "cpu": "500m",
+          "memory": "512Mi"
+        }
+      }
+    },
+    "access-analytics-service": {
+      "replicaCount": 2,
+      "image": {
+        "repository": "your-dockerhub/access-analytics-service",
+        "tag": "latest",
+        "pullPolicy": "IfNotPresent"
+      },
+      "port": 3007,
+      "ingressPath": "/access-analytics(/|$)(.*)",
+      "env": {
+        "NODE_ENV": "development",
+        "SERVICE_NAME": "access-analytics-service",
+        "PORT": "3007",
+        "OTEL_TRACING_ENABLED": "false",
+        "OTEL_SERVICE_NAME": "access-analytics-service",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4318/v1/traces",
+        "METRICS_SERVICE_URL": "http://metrics-service:3001",
+        "NOTIFICATION_SERVICE_URL": "http://notification-service:3002",
+        "PREVIEW_SERVICE_URL": "http://preview-service:3003",
+        "COMPRESSION_SERVICE_URL": "http://compression-service:3004",
+        "WEBHOOK_SERVICE_URL": "http://webhook-service:3005",
+        "SCHEDULER_SERVICE_URL": "http://scheduler-service:3006",
+        "ACCESS_ANALYTICS_SERVICE_URL": "http://access-analytics-service:3007",
+        "BACKUP_SERVICE_URL": "http://backup-service:3008"
+      },
+      "resources": {
+        "requests": {
+          "cpu": "100m",
+          "memory": "128Mi"
+        },
+        "limits": {
+          "cpu": "500m",
+          "memory": "512Mi"
+        }
+      }
+    },
+    "backup-service": {
+      "replicaCount": 2,
+      "image": {
+        "repository": "your-dockerhub/backup-service",
+        "tag": "latest",
+        "pullPolicy": "IfNotPresent"
+      },
+      "port": 3008,
+      "ingressPath": "/backup(/|$)(.*)",
+      "env": {
+        "NODE_ENV": "development",
+        "SERVICE_NAME": "backup-service",
+        "PORT": "3008",
+        "OTEL_TRACING_ENABLED": "false",
+        "OTEL_SERVICE_NAME": "backup-service",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4318/v1/traces",
+        "METRICS_SERVICE_URL": "http://metrics-service:3001",
+        "NOTIFICATION_SERVICE_URL": "http://notification-service:3002",
+        "PREVIEW_SERVICE_URL": "http://preview-service:3003",
+        "COMPRESSION_SERVICE_URL": "http://compression-service:3004",
+        "WEBHOOK_SERVICE_URL": "http://webhook-service:3005",
+        "SCHEDULER_SERVICE_URL": "http://scheduler-service:3006",
+        "ACCESS_ANALYTICS_SERVICE_URL": "http://access-analytics-service:3007",
+        "BACKUP_SERVICE_URL": "http://backup-service:3008"
+      },
+      "resources": {
+        "requests": {
+          "cpu": "100m",
+          "memory": "128Mi"
+        },
+        "limits": {
+          "cpu": "500m",
+          "memory": "512Mi"
+        }
+      }
+    }
+  },
+  "ingress": {
+    "enabled": true,
+    "className": "nginx",
+    "host": "pm3.local"
+  }
+}\n

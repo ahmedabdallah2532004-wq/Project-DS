@@ -1,0 +1,55 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://backup-service:3001/backup/run",
+        "method": "POST",
+        "options": {}
+      },
+      "name": "Trigger Backup",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://access-analytics-service:3010/analytics/file/latest",
+        "method": "GET",
+        "options": {}
+      },
+      "name": "Get Analytics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://notification-service:3005/notify",
+        "method": "POST",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "message", "value": "Backup completed and analytics verified" },
+            { "name": "recipient", "value": "admin@example.com" }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Send Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "Start": { "main": [[{ "node": "Trigger Backup", "type": "main", "index": 0 }]] },
+    "Trigger Backup": { "main": [[{ "node": "Get Analytics", "type": "main", "index": 0 }]] },
+    "Get Analytics": { "main": [[{ "node": "Send Notification", "type": "main", "index": 0 }]] }
+  }
+}

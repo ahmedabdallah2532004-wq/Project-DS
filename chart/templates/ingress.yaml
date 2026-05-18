@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pm3-microservices
+  namespace: {{ .Values.global.namespace }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: pm3.local
+      http:
+        paths:
+          {{- range $name, $config := .Values }}
+          {{- if and (ne $name "global") (ne $name "defaults") (ne $name "kafka") (ne $name "mongodb") }}
+          - path: /{{ replace $name "-service" "" }}(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ $name }}
+                port:
+                  number: {{ $config.port }}
+          {{- end }}
+          {{- end }}
