@@ -1,0 +1,45 @@
+{{- range $name, $config := .Values }}
+{{- if and (ne $name "global") (ne $name "defaults") (ne $name "kafka") (ne $name "mongodb") }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  namespace: {{ $.Values.global.namespace }}
+  labels:
+    app: {{ $name }}
+spec:
+  replicas: {{ $config.replicas }}
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+    spec:
+      containers:
+        - name: {{ $name }}
+          image: "{{ ($config.image | default dict).repository | default $.Values.defaults.image.repository }}/{{ $name }}:{{ ($config.image | default dict).tag | default $.Values.defaults.image.tag }}"
+          imagePullPolicy: {{ $.Values.defaults.image.pullPolicy }}
+          ports:
+            - containerPort: {{ $config.port }}
+          envFrom:
+            - configMapRef:
+                name: {{ $name }}-config
+          resources:
+            {{- toYaml $.Values.defaults.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ $config.port }}
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: {{ $config.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+{{- end }}
+{{- end }}

@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.audit.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.audit.name }}
+spec:
+  replicas: {{ .Values.audit.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.audit.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.audit.name }}
+    spec:
+      containers:
+      - name: {{ .Values.audit.name }}
+        image: "{{ .Values.audit.image.repository }}:{{ .Values.audit.image.tag }}"
+        ports:
+        - containerPort: {{ .Values.audit.service.port }}
+        resources:
+          {{- toYaml .Values.audit.resources | nindent 10 }}
+        env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.audit.name }}-secret
+              key: DB_PASSWORD
+        envFrom:
+        - configMapRef:
+            name: {{ .Values.audit.name }}-config
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: {{ .Values.audit.service.port }}
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.audit.service.port }}
+          initialDelaySeconds: 15
+          periodSeconds: 20

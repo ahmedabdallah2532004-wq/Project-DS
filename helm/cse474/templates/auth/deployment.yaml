@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.auth.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.auth.name }}
+spec:
+  replicas: {{ .Values.auth.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.auth.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.auth.name }}
+    spec:
+      containers:
+      - name: {{ .Values.auth.name }}
+        image: "{{ .Values.auth.image.repository }}:{{ .Values.auth.image.tag }}"
+        ports:
+        - containerPort: {{ .Values.auth.service.port }}
+        resources:
+          {{- toYaml .Values.auth.resources | nindent 10 }}
+        env:
+        - name: PORT
+          value: {{ .Values.auth.service.port | quote }}
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.auth.name }}-secret
+              key: DB_PASSWORD
+        envFrom:
+        - configMapRef:
+            name: {{ .Values.auth.name }}-config
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: {{ .Values.auth.service.port }}
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.auth.service.port }}
+          initialDelaySeconds: 15
+          periodSeconds: 20

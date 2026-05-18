@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: preview-service
+  namespace: cse474-prod
+  labels:
+    app: preview-service
+spec:
+  type: ClusterIP
+  selector:
+    app: preview-service
+  ports:
+    - name: http
+      port: 3003
+      targetPort: 3003

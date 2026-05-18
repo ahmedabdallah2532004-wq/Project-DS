@@ -1,0 +1,21 @@
+{{- range $name, $config := .Values }}
+{{- if and (ne $name "global") (ne $name "defaults") (ne $name "kafka") (ne $name "mongodb") }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  namespace: {{ $.Values.global.namespace }}
+  labels:
+    app: {{ $name }}
+spec:
+  ports:
+    - port: {{ $config.port }}
+      targetPort: {{ $config.port }}
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ $name }}
+  type: ClusterIP
+{{- end }}
+{{- end }}

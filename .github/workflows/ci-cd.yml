@@ -1,0 +1,93 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+env:
+  NODE_VERSION: "20"
+  SERVICES: "metrics-service notification-service preview-service compression-service webhook-service scheduler-service access-analytics-service backup-service"
+
+jobs:
+  validate-build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          for service in $SERVICES; do
+            npm ci --prefix services/$service
+          done
+
+      - name: Lint
+        run: |
+          for service in $SERVICES; do
+            npm run lint --prefix services/$service
+          done
+
+      - name: Unit tests
+        run: |
+          for service in $SERVICES; do
+            npm run test:unit --prefix services/$service
+          done
+
+      - name: Integration tests
+        run: |
+          for service in $SERVICES; do
+            npm run test:integration --prefix services/$service
+          done
+
+      - name: Coverage
+        run: |
+          for service in $SERVICES; do
+            npm run test:coverage --prefix services/$service
+          done
+
+      - name: Docker login
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Docker build
+        run: |
+          for service in $SERVICES; do
+            docker build -t pm3/$service:local -f services/$service/Dockerfile .
+          done
+
+      - name: Docker push
+        if: github.event_name == 'push'
+        run: |
+          for service in $SERVICES; do
+            docker tag pm3/$service:local ${{ secrets.DOCKER_USERNAME }}/$service:${{ github.sha }}
+            docker tag pm3/$service:local ${{ secrets.DOCKER_USERNAME }}/$service:latest
+            docker push ${{ secrets.DOCKER_USERNAME }}/$service:${{ github.sha }}
+            docker push ${{ secrets.DOCKER_USERNAME }}/$service:latest
+          done
+
+      - name: Configure kubeconfig
+        if: github.event_name == 'push'
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > ~/.kube/config
+
+      - name: Helm deploy
+        if: github.event_name == 'push'
+        run: |
+          args=""
+          for service in $SERVICES; do
+            args="$args --set \"${service}.image.repository=${{ secrets.DOCKER_USERNAME }}/${service}\""
+            args="$args --set \"${service}.image.tag=${{ github.sha }}\""
+          done
+          helm upgrade --install cse474 ./chart --namespace cse474-prod --create-namespace --set defaults.image.pullPolicy=IfNotPresent $args

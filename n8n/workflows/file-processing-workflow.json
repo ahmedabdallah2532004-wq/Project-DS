@@ -1,0 +1,68 @@
+{
+  "name": "PM3 file processing workflow",
+  "nodes": [
+    {
+      "name": "webhook-service",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "url": "http://webhook-service:3005/health"
+      }
+    },
+    {
+      "name": "preview-service",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "url": "http://preview-service:3003/api/preview-service/process"
+      }
+    },
+    {
+      "name": "compression-service",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "url": "http://compression-service:3004/api/compression-service/process"
+      }
+    },
+    {
+      "name": "notification-service",
+      "type": "n8n-nodes-base.httpRequest",
+      "parameters": {
+        "url": "http://notification-service:3002/api/notification-service/process"
+      }
+    }
+  ],
+  "connections": {
+    "webhook-service": {
+      "main": [
+        [
+          {
+            "node": "preview-service",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "preview-service": {
+      "main": [
+        [
+          {
+            "node": "compression-service",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "compression-service": {
+      "main": [
+        [
+          {
+            "node": "notification-service",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

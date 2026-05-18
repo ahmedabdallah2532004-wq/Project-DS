@@ -1,0 +1,14 @@
+process.env.NODE_ENV = process.env.NODE_ENV || 'test';
+process.env.SERVICE_NAME = process.env.SERVICE_NAME || 'scheduler-service';
+process.env.PORT = process.env.PORT || '3002';
+process.env.MONGO_URI = process.env.MONGO_URI || 'mongodb://mongo:27017/scheduler-db';
+process.env.MONGO_RETRY_CONNECTION_DELAY_MS = process.env.MONGO_RETRY_CONNECTION_DELAY_MS || '5000';
+process.env.CRON_INTERVAL = process.env.CRON_INTERVAL || '*/10 * * * * *';
+process.env.RETRY_LIMITS = process.env.RETRY_LIMITS || '3';
+process.env.KAFKA_TOPIC = process.env.KAFKA_TOPIC || 'events';
+process.env.KAFKA_CLIENT_ID = process.env.KAFKA_CLIENT_ID || 'scheduler-service';
+process.env.KAFKA_BROKER = process.env.KAFKA_BROKER || 'kafka:9092';
+process.env.JOB_TIMEOUT_MS = process.env.JOB_TIMEOUT_MS || '60000';
+process.env.OTEL_TRACING_ENABLED = process.env.OTEL_TRACING_ENABLED || 'false';
+process.env.OTEL_SERVICE_NAME = process.env.OTEL_SERVICE_NAME || 'scheduler-service';
+process.env.OTEL_EXPORTER_OTLP_ENDPOINT = process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://jaeger-collector:4318/v1/traces';

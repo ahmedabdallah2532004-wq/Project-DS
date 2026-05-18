@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: access-analytics-service
+  namespace: cse474-prod
+  labels:
+    app: access-analytics-service
+spec:
+  type: ClusterIP
+  selector:
+    app: access-analytics-service
+  ports:
+    - name: http
+      port: 3007
+      targetPort: 3007
