@@ -1,4 +1,3 @@
-const config = require('../config');
 const kafka = require('../config/kafka');
 const logger = require('../logger');
 const topics = require('../../../../contracts/topics');
