@@ -14,9 +14,9 @@ describe('process file service', () => {
 
     expect(result.status).toBe('completed');
     expect(result.steps.preview).toBe('completed');
-    expect(axios.post).toHaveBeenCalledWith(expect.stringContaining('/preview'), expect.any(Object), expect.any(Object));
-    expect(axios.post).toHaveBeenCalledWith(expect.stringContaining('/compress'), expect.any(Object), expect.any(Object));
-    expect(axios.post).toHaveBeenCalledWith(expect.stringContaining('/backup'), expect.any(Object), expect.any(Object));
-    expect(axios.post).toHaveBeenCalledWith(expect.stringContaining('/notify'), expect.any(Object), expect.any(Object));
+    expect(axios.post).toHaveBeenCalledWith(expect.stringContaining('preview-service'), expect.any(Object), expect.any(Object));
+    expect(axios.post).toHaveBeenCalledWith(expect.stringContaining('compression-service'), expect.any(Object), expect.any(Object));
+    expect(axios.post).toHaveBeenCalledWith(expect.stringContaining('backup-service'), expect.any(Object), expect.any(Object));
+    expect(axios.post).toHaveBeenCalledWith(expect.stringContaining('notification-service'), expect.any(Object), expect.any(Object));
   });
 });
