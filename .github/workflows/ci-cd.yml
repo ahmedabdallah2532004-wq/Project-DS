@@ -90,4 +90,4 @@ jobs:
             args="$args --set \"${service}.image.repository=${{ secrets.DOCKER_USERNAME }}/${service}\""
             args="$args --set \"${service}.image.tag=${{ github.sha }}\""
           done
-          helm upgrade --install cse474 ./chart --namespace cse474-prod --create-namespace --set defaults.image.pullPolicy=IfNotPresent $args
+          helm upgrade --install cse474 ./chart --namespace cse474-prod --create-namespace $args

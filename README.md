@@ -103,16 +103,29 @@ GitHub Actions expects:
 - `DOCKER_PASSWORD`
 - `KUBE_CONFIG`
 
-## Screenshots Required
+## Screenshots
 
-Add final screenshots under `report/screenshots/`:
+Here are the system status and documentation screenshots:
 
-- `swagger-metrics-service.png`
-- `swagger-webhook-service.png`
-- `prometheus-targets.png`
-- `grafana-dashboard.png`
-- `jaeger-trace.png`
-- `n8n-workflow.gif`
+### Swagger Documentation
+#### Metrics Service Documentation
+![Swagger Metrics Service](report/screenshots/swagger-metrics-service.png)
+
+#### Webhook Service Documentation
+![Swagger Webhook Service](report/screenshots/swagger-webhook-service.png)
+
+### Monitoring & Infrastructure
+#### Prometheus Targets
+![Prometheus Targets](report/screenshots/prometheus-targets.png)
+
+#### Grafana Dashboard
+![Grafana Dashboard](report/screenshots/grafana-dashboard.png)
+
+#### Jaeger Distributed Tracing
+![Jaeger Trace](report/screenshots/jaeger-trace.png)
+
+#### n8n Workflow
+![n8n Workflow](report/screenshots/n8n-workflow.gif)
 
 ## Viva Notes
 
